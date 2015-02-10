@@ -2,7 +2,206 @@
 <meta charset="utf-8">
 <title>Election Dashboard</title>
 <head>
+  <link href="css/dc.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 </head>
 <body>
+  <div>
+    <h1> Published At </h1>
+    <div id='published-at-date-chart'></div>
+    <div id='published-at-hour-chart'></div>
+  </div>
+  <div class="clearfix"></div>
+  <div>
+    <h1> Updated At </h1>
+    <div id='updated-at-date-chart'></div>
+    <div id='updated-at-hour-chart'></div>
+  </div>
+  <div class="clearfix"></div>
+  <div>
+    <h1> Hashtag Count</h1>
+    <div id='hashtag-count-chart'> </div>
+  </div>
+  <div class="clearfix"></div>
+  <div>
+    <h1> @ Count</h1>
+    <div id='at-count-chart'> </div>
+  </div>
+  <div class="clearfix"></div>
+  <div>
+    <h1> Author </h1>
+    <p> tweet count by authors who have made more than 1 tweet </p>
+    <div id='author-chart'></div>
+  </div>
+  <div class="clearfix"></div>
+  <table id='data-table' class='table table-hover'>
+  </table>
+  <script src="js/d3.js"></script>
+  <script src="js/crossfilter.js"></script>
+  <script src="js/dc.min.js"></script>
+  <script>
+     d3.json('http://api.crisis.net/item?location=8.675277%2C9.081999&distance=200&tags=election&apikey=532d32c7ed3329652f114b70&limit=500', function(json){
+       var data = json.data;
+       var margin = {top: 10, right: 50, bottom: 30, left: 40};
+
+       data.forEach(function(datum) {
+         datum.publishedAt = new Date(datum.publishedAt);
+         datum.updatedAt = new Date(datum.updatedAt);
+         datum.publishedDate = d3.time.day(datum.publishedAt);
+         datum.updatedDate = d3.time.day(datum.updatedAt);
+         datum.created = new Date(datum.createdAt).toDateString();
+         datum.author = datum.author.username;
+         datum.hashtag = datum.content.match(/#\w+/g) || [];
+         datum.at = datum.content.match(/@\w+/g) || [];
+       })
+
+       var ndx = crossfilter(data);
+       var all = ndx.groupAll();
+
+       var publishedAtDateDimension = ndx.dimension(function(d) { return  d.publishedDate; });
+       var publishedAtDateGroup = publishedAtDateDimension.group().reduceCount();
+
+       var publishedAtHourDimension = ndx.dimension(function(d) { return  d.publishedAt.getHours(); });
+       var publishedAtHourGroup = publishedAtHourDimension.group().reduceCount();
+
+       var updatedAtDateDimension = ndx.dimension(function(d) { return  d.updatedDate; });
+       var updatedAtDateGroup = updatedAtDateDimension.group().reduceCount();
+
+       var updatedAtHourDimension = ndx.dimension(function(d) { return  d.updatedAt.getHours(); });
+       var updatedAtHourGroup = updatedAtHourDimension.group().reduceCount();
+
+       var authorDimension = ndx.dimension(function(d) { return d.author; });
+       var authorGroup = authorDimension.group().reduceCount();
+
+       var hashTagCountDimension = ndx.dimension(function(d) { return d.hashtag.length; });
+       var hashtagCountGroup =  hashTagCountDimension.group().reduceCount();
+
+       var atCountDimension = ndx.dimension(function(d) { return d.at.length; });
+       var atCountGroup = atCountDimension.group().reduceCount();
+
+       var publishedAtDateChart = dc.barChart('#published-at-date-chart');
+       var publishedAtHourChart = dc.barChart('#published-at-hour-chart');
+
+       var updatedAtDateChart = dc.barChart('#updated-at-date-chart');
+       var updatedAtHourChart = dc.barChart('#updated-at-hour-chart');
+
+       var authorChart = dc.barChart('#author-chart');
+
+       var hashtagCountChart = dc.barChart('#hashtag-count-chart');
+       var atCountChart = dc.barChart('#at-count-chart');
+
+       publishedAtHourChart
+        .width(400)
+        .height(200)
+        .margins(margin)
+        .dimension(publishedAtHourDimension)
+        .group(publishedAtHourGroup)
+        .elasticY(true)
+        .centerBar(true)
+        .round(dc.round.floor)
+        .alwaysUseRounding(true)
+        .x(d3.scale.linear().domain([0, 24]));
+
+      publishedAtDateChart
+        .width(400)
+        .height(200)
+        .margins(margin)
+        .dimension(publishedAtDateDimension)
+        .group(publishedAtDateGroup)
+        .elasticY(true)
+        .x(d3.time.scale().domain([new Date(2015, 1, 1), new Date(2015, 3, 1)] ))
+        .xUnits(d3.time.days)
+        .centerBar(true)
+        .round(dc.round.floor)
+        .alwaysUseRounding(true);
+
+       updatedAtHourChart
+        .width(400)
+        .height(200)
+        .margins(margin)
+        .dimension(updatedAtHourDimension)
+        .group(updatedAtHourGroup)
+        .elasticY(true)
+        .centerBar(true)
+        .round(dc.round.floor)
+        .alwaysUseRounding(true)
+        .x(d3.scale.linear().domain([0, 24]));
+
+      updatedAtDateChart
+        .width(400)
+        .height(200)
+        .margins(margin)
+        .dimension(updatedAtDateDimension)
+        .group(updatedAtDateGroup)
+        .elasticY(true)
+        .x(d3.time.scale().domain([new Date(2015, 1, 1), new Date(2015, 3, 1)] ))
+        .xUnits(d3.time.days)
+        .centerBar(true)
+        .round(dc.round.floor)
+        .alwaysUseRounding(true);
+
+      hashtagCountChart
+        .width(800)
+        .height(200)
+        .margins(margin)
+        .dimension(hashTagCountDimension)
+        .group(hashtagCountGroup)
+        .elasticY(true)
+        .elasticX(true)
+        .x(d3.scale.linear())
+        .centerBar(true)
+        .alwaysUseRounding(true);
+
+     atCountChart
+        .width(800)
+        .height(200)
+        .margins(margin)
+        .dimension(atCountDimension)
+        .group(atCountGroup)
+        .elasticY(true)
+        .elasticX(true)
+        .outerPadding(0.9)
+        .alwaysUseRounding(true)
+        .x(d3.scale.linear().domain([0,5]).clamp(true))
+        .centerBar(true)
+        .alwaysUseRounding(true);
+
+      var filteredAuthorGroup = filterAuthors(authorGroup)
+
+      authorChart
+        .width(800)
+        .height(300)
+        .margins({top: 40, bottom: 90, right: 20, left: 20})
+        .dimension(authorDimension)
+        .group(filteredAuthorGroup)
+        .elasticY(true)
+        .elasticX(true)
+        .x(d3.scale.ordinal())
+        .xUnits(dc.units.ordinal)
+        .renderlet(function(chart){
+          chart.selectAll("g.x text")
+            .attr('dx', '-55')
+            .attr('transform', "rotate(-60)");
+        });
+
+      dc.dataTable('#data-table')
+        .dimension(updatedAtDateDimension)
+        .group(function(d) {
+          return d.publishedDate.toDateString();
+        })
+        .size(100)
+        .columns([
+          'created',
+          'author',
+          'content'
+        ])
+
+        dc.renderAll();
+     });
+
+     function filterAuthors(group) {
+       return { all: function() { return group.all().filter(function(d) { return d.value > 1;});}}
+     };
+  </script>
 </body>
 
