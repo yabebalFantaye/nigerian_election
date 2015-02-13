@@ -3,46 +3,83 @@
 <title>Election Dashboard</title>
 <head>
   <link href="css/dc.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 </head>
 <body>
-  <div>
-    <h1> Published At </h1>
-    <div id='published-at-date-chart'></div>
-    <div id='published-at-hour-chart'></div>
-  </div>
-  <div class="clearfix"></div>
-  <div>
-    <h1> Updated At </h1>
-    <div id='updated-at-date-chart'></div>
-    <div id='updated-at-hour-chart'></div>
-  </div>
-  <div class="clearfix"></div>
-  <div>
-    <h1> Hashtag Count</h1>
-    <div id='hashtag-count-chart'> </div>
-  </div>
-  <div class="clearfix"></div>
-  <div>
-    <h1> @ Count</h1>
-    <div id='at-count-chart'> </div>
-  </div>
-  <div class="clearfix"></div>
-  <div>
-    <h1> Author </h1>
-    <p> tweet count by authors who have made more than 1 tweet </p>
-    <div id='author-chart'></div>
-  </div>
-  <div class="clearfix"></div>
-  <table id='data-table' class='table table-hover'>
-  </table>
+  <main class='container'>
+    <div class='row'>
+
+      <div class='col-md-8'>
+        <h1> Published At </h1>
+        <div class='col-md-6'>
+          <div id='published-at-date-chart'></div>
+        </div>
+        <div class='col-md-6'>
+          <div id='published-at-hour-chart'></div>
+        </div>
+      </div>
+      <div class='col-md-4'>
+        <h1> Hashtag Count</h1>
+        <div id='hashtag-count-chart'></div>
+      </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class='row'>
+      <div class='col-md-8'>
+        <h1> Updated At </h1>
+        <div class='col-md-6'>
+          <div id='updated-at-date-chart'></div>
+        </div>
+        <div class='col-md-6'>
+          <div id='updated-at-hour-chart'></div>
+        </div>
+      </div>
+      <div class='col-md-4'>
+        <h1> @ Count</h1>
+        <div id='at-count-chart'></div>
+      </div>
+    </div>
+
+    <div class='row'>
+      <div class='col-md-12'>
+        <h1> Author </h1>
+        <p> Top 30 tweeters </p>
+        <div id='author-chart'></div>
+      </div>
+    </div>
+
+    <div class="clearfix"></div>
+    <div class='row'>
+      <div class='col-md-12'>
+        <h1> The Tweets</h1>
+        <div class='overflow-table'>
+          <table id='data-table' class='table table-hover'></table>
+        </div>
+      </div>
+    </div>
+  </main>
   <script src="js/d3.js"></script>
   <script src="js/crossfilter.js"></script>
   <script src="js/dc.min.js"></script>
+  <script src="js/queue.min.js"></script>
   <script>
-     d3.json('http://api.crisis.net/item?location=8.675277%2C9.081999&distance=200&tags=election&apikey=532d32c7ed3329652f114b70&limit=500', function(json){
-       var data = json.data;
-       var margin = {top: 10, right: 50, bottom: 30, left: 40};
+    var link = 'http://api.crisis.net/item?location=8.675277%2C9.081999&distance=200&tags=election&apikey=532d32c7ed3329652f114b70&limit=500'
+    queue(3)
+      .defer(d3.json, link)
+      .defer(d3.json, link+'&offset=500')
+      .defer(d3.json, link+'&offset=1000')
+      .defer(d3.json, link+'&offset=1500')
+      .defer(d3.json, link+'&offset=2000')
+      .defer(d3.json, link+'&offset=2500')
+      .defer(d3.json, link+'&offset=3000')
+      .defer(d3.json, link+'&offset=3500')
+      .defer(d3.json, link+'&offset=4000')
+      .awaitAll(function(error, json){
+        var data = json.reduce(function(memo, current) { return memo.concat(current.data)}, []);
+        var margin = {top: 10, right: 50, bottom: 45, left: 40};
 
        data.forEach(function(datum) {
          datum.publishedAt = new Date(datum.publishedAt);
@@ -87,11 +124,11 @@
 
        var authorChart = dc.barChart('#author-chart');
 
-       var hashtagCountChart = dc.barChart('#hashtag-count-chart');
-       var atCountChart = dc.barChart('#at-count-chart');
+       var hashtagCountChart = dc.pieChart('#hashtag-count-chart');
+       var atCountChart = dc.pieChart('#at-count-chart');
 
        publishedAtHourChart
-        .width(400)
+        .width(350)
         .height(200)
         .margins(margin)
         .dimension(publishedAtHourDimension)
@@ -103,7 +140,7 @@
         .x(d3.scale.linear().domain([0, 24]));
 
       publishedAtDateChart
-        .width(400)
+        .width(350)
         .height(200)
         .margins(margin)
         .dimension(publishedAtDateDimension)
@@ -113,10 +150,16 @@
         .xUnits(d3.time.days)
         .centerBar(true)
         .round(dc.round.floor)
-        .alwaysUseRounding(true);
+        .alwaysUseRounding(true)
+        .renderlet(function(chart){
+          chart.selectAll("g.x text")
+            .attr('dx', '-27')
+            .attr('dy', '-5')
+            .attr('transform', "rotate(-60)");
+        });
 
        updatedAtHourChart
-        .width(400)
+        .width(350)
         .height(200)
         .margins(margin)
         .dimension(updatedAtHourDimension)
@@ -128,7 +171,7 @@
         .x(d3.scale.linear().domain([0, 24]));
 
       updatedAtDateChart
-        .width(400)
+        .width(350)
         .height(200)
         .margins(margin)
         .dimension(updatedAtDateDimension)
@@ -138,40 +181,37 @@
         .xUnits(d3.time.days)
         .centerBar(true)
         .round(dc.round.floor)
-        .alwaysUseRounding(true);
+        .alwaysUseRounding(true)
+        .renderlet(function(chart){
+          chart.selectAll("g.x text")
+            .attr('dx', '-27')
+            .attr('dy', '-5')
+            .attr('transform', "rotate(-60)");
+        });
+
 
       hashtagCountChart
-        .width(800)
+        .width(200)
         .height(200)
-        .margins(margin)
         .dimension(hashTagCountDimension)
         .group(hashtagCountGroup)
-        .elasticY(true)
-        .elasticX(true)
-        .x(d3.scale.linear())
-        .centerBar(true)
-        .alwaysUseRounding(true);
+        .innerRadius(40)
+        .legend(dc.legend().x(240).y(0).gap(5));
 
      atCountChart
-        .width(800)
+        .width(200)
         .height(200)
-        .margins(margin)
         .dimension(atCountDimension)
         .group(atCountGroup)
-        .elasticY(true)
-        .elasticX(true)
-        .outerPadding(0.9)
-        .alwaysUseRounding(true)
-        .x(d3.scale.linear().domain([0,5]).clamp(true))
-        .centerBar(true)
-        .alwaysUseRounding(true);
+        .innerRadius(40)
+        .legend(dc.legend().x(240).y(0).gap(5));
 
       var filteredAuthorGroup = filterAuthors(authorGroup)
 
       authorChart
-        .width(800)
+        .width(1100)
         .height(300)
-        .margins({top: 40, bottom: 90, right: 20, left: 20})
+        .margins({top: 20, bottom: 90, right: 20, left: 20})
         .dimension(authorDimension)
         .group(filteredAuthorGroup)
         .elasticY(true)
@@ -200,7 +240,7 @@
      });
 
      function filterAuthors(group) {
-       return { all: function() { return group.all().filter(function(d) { return d.value > 1;});}}
+       return { all: function() { return group.top(30).filter(function(d) { return d.value > 1;});}}
      };
   </script>
 </body>
