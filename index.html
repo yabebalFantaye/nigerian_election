@@ -9,19 +9,30 @@
 <body>
   <main class='container'>
     <div class='row'>
+      <article>
+      </article>
 
       <div class='col-md-8'>
         <h1> Published At </h1>
         <div class='col-md-6'>
-          <div id='published-at-date-chart'></div>
+          <div id='published-at-date-chart'>
+            <span>Tweets by Published at Date </span>
+            <a class='reset' href='javascript:publishedAtDateChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
+          </div>
         </div>
         <div class='col-md-6'>
-          <div id='published-at-hour-chart'></div>
+          <div id='published-at-hour-chart'>
+            <span>Tweets by Published at by Time of Day</span>
+            <a class='reset' href='javascript:publishedAtHourChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
+          </div>
         </div>
       </div>
       <div class='col-md-4'>
         <h1> Hashtag Count</h1>
-        <div id='hashtag-count-chart'></div>
+        <div id='hashtag-count-chart'>
+          <span>Tweets by the number of Hashtags used</span>
+          <a class='reset' href='javascript:hashtagCountChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
+        </div>
       </div>
     </div>
 
@@ -31,23 +42,34 @@
       <div class='col-md-8'>
         <h1> Updated At </h1>
         <div class='col-md-6'>
-          <div id='updated-at-date-chart'></div>
+          <div id='updated-at-date-chart'>
+            <span>Tweets by Updated at Date </span>
+          <a class='reset' href='javascript:updatedAtDateChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
+          </div>
         </div>
         <div class='col-md-6'>
-          <div id='updated-at-hour-chart'></div>
+          <div id='updated-at-hour-chart'>
+            <span>Tweets by Updated at by Time of Day</span>
+          <a class='reset' href='javascript:updatedAtHourChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
+          </div>
         </div>
       </div>
       <div class='col-md-4'>
         <h1> @ Count</h1>
-        <div id='at-count-chart'></div>
+        <div id='at-count-chart'>
+          <span>Tweets by the number of @ references used</span>
+          <a class='reset' href='javascript:atCountChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
+        </div>
       </div>
     </div>
 
     <div class='row'>
       <div class='col-md-12'>
         <h1> Author </h1>
-        <p> Top 30 tweeters </p>
-        <div id='author-chart'></div>
+        <div id='author-chart'>
+          <span> Top 30 tweeters </span>
+          <a class='reset' href='javascript:authorChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
+        </div>
       </div>
     </div>
 
@@ -56,7 +78,15 @@
       <div class='col-md-12'>
         <h1> The Tweets</h1>
         <div class='overflow-table'>
-          <table id='data-table' class='table table-hover'></table>
+          <table id='data-table' class='table table-hover'>
+            <thead>
+              <tr>
+                <th data-dynatable-column='value'>Created</th>
+                <th data-dynatable-column='value'>Author</th>
+                <th data-dynatable-column='value'>Content</th>
+              </tr>
+            </thead>
+          </table>
         </div>
       </div>
     </div>
