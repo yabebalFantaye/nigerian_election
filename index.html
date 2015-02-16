@@ -81,9 +81,9 @@
           <table id='data-table' class='table table-hover'>
             <thead>
               <tr>
-                <th data-dynatable-column='value'>Created</th>
-                <th data-dynatable-column='value'>Author</th>
-                <th data-dynatable-column='value'>Content</th>
+                <th>Created</th>
+                <th>Author</th>
+                <th>Content</th>
               </tr>
             </thead>
           </table>
@@ -95,6 +95,8 @@
   <script src="js/crossfilter.js"></script>
   <script src="js/dc.min.js"></script>
   <script src="js/queue.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <script src="//cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js"></script>
   <script>
     var link = 'http://api.crisis.net/item?location=8.675277%2C9.081999&distance=200&tags=election&apikey=532d32c7ed3329652f114b70&limit=500'
     queue(3)
@@ -124,6 +126,7 @@
 
        var ndx = crossfilter(data);
        var all = ndx.groupAll();
+       var today = new Date();
 
        var publishedAtDateDimension = ndx.dimension(function(d) { return  d.publishedDate; });
        var publishedAtDateGroup = publishedAtDateDimension.group().reduceCount();
@@ -146,10 +149,10 @@
        var atCountDimension = ndx.dimension(function(d) { return d.at.length; });
        var atCountGroup = atCountDimension.group().reduceCount();
 
-       var publishedAtDateChart = dc.barChart('#published-at-date-chart');
+       var publishedAtDateChart = dc.lineChart('#published-at-date-chart');
        var publishedAtHourChart = dc.barChart('#published-at-hour-chart');
 
-       var updatedAtDateChart = dc.barChart('#updated-at-date-chart');
+       var updatedAtDateChart = dc.lineChart('#updated-at-date-chart');
        var updatedAtHourChart = dc.barChart('#updated-at-hour-chart');
 
        var authorChart = dc.barChart('#author-chart');
@@ -176,11 +179,8 @@
         .dimension(publishedAtDateDimension)
         .group(publishedAtDateGroup)
         .elasticY(true)
-        .x(d3.time.scale().domain([new Date(2015, 1, 1), new Date(2015, 3, 1)] ))
+        .x(d3.time.scale().domain([today.setDate(today.getDate() - 4),  today.setDate(today.getDate() + 4)] ))
         .xUnits(d3.time.days)
-        .centerBar(true)
-        .round(dc.round.floor)
-        .alwaysUseRounding(true)
         .renderlet(function(chart){
           chart.selectAll("g.x text")
             .attr('dx', '-27')
@@ -207,18 +207,14 @@
         .dimension(updatedAtDateDimension)
         .group(updatedAtDateGroup)
         .elasticY(true)
-        .x(d3.time.scale().domain([new Date(2015, 1, 1), new Date(2015, 3, 1)] ))
+        .x(d3.time.scale().domain([today.setDate(today.getDate() - 4),  today.setDate(today.getDate() + 4)] ))
         .xUnits(d3.time.days)
-        .centerBar(true)
-        .round(dc.round.floor)
-        .alwaysUseRounding(true)
         .renderlet(function(chart){
           chart.selectAll("g.x text")
             .attr('dx', '-27')
             .attr('dy', '-5')
             .attr('transform', "rotate(-60)");
         });
-
 
       hashtagCountChart
         .width(200)
@@ -254,12 +250,13 @@
             .attr('transform', "rotate(-60)");
         });
 
+
       dc.dataTable('#data-table')
         .dimension(updatedAtDateDimension)
         .group(function(d) {
           return d.publishedDate.toDateString();
         })
-        .size(100)
+        .size(10000)
         .columns([
           'created',
           'author',
