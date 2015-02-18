@@ -3,17 +3,15 @@
 <title>Election Dashboard</title>
 <head>
   <link href="css/dc.css" rel="stylesheet">
-  <link href="css/styles.css" rel="stylesheet">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+  <link href="css/styles.css" rel="stylesheet">
 </head>
 <body>
   <main class='container'>
+    <h1>Crisis Net Nigerian Election Dashboard</h1>
     <div class='row'>
-      <article>
-      </article>
-
       <div class='col-md-8'>
-        <h1> Published At </h1>
+        <h2> Published At </h2>
         <div class='col-md-6'>
           <div id='published-at-date-chart'>
             <span>Tweets by Published at Date </span>
@@ -28,7 +26,7 @@
         </div>
       </div>
       <div class='col-md-4'>
-        <h1> Hashtag Count</h1>
+        <h2> Hashtag Count</h2>
         <div id='hashtag-count-chart'>
           <span>Tweets by the number of Hashtags used</span>
           <a class='reset' href='javascript:hashtagCountChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
@@ -40,7 +38,7 @@
 
     <div class='row'>
       <div class='col-md-8'>
-        <h1> Updated At </h1>
+        <h2> Updated At </h2>
         <div class='col-md-6'>
           <div id='updated-at-date-chart'>
             <span>Tweets by Updated at Date </span>
@@ -55,7 +53,7 @@
         </div>
       </div>
       <div class='col-md-4'>
-        <h1> @ Count</h1>
+        <h2> @ Count</h2>
         <div id='at-count-chart'>
           <span>Tweets by the number of @ references used</span>
           <a class='reset' href='javascript:atCountChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
@@ -64,11 +62,18 @@
     </div>
 
     <div class='row'>
-      <div class='col-md-12'>
-        <h1> Author </h1>
+      <div class='col-md-8'>
+        <h2> Author </h2>
         <div id='author-chart'>
           <span> Top 30 tweeters </span>
           <a class='reset' href='javascript:authorChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
+        </div>
+      </div>
+      <div class='col-md-4'>
+        <h2> Tweet Length</h2>
+        <div id='tweet-length-chart'>
+          <span> Length of Tweets </span>
+          <a class='reset' href='javascript:tweetlengthChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
         </div>
       </div>
     </div>
@@ -76,8 +81,9 @@
     <div class="clearfix"></div>
     <div class='row'>
       <div class='col-md-12'>
-        <h1> The Tweets</h1>
+        <h2> The Tweets</h2>
         <div class='overflow-table'>
+          <span> Sorted by created date and limited to 500</span>
           <table id='data-table' class='table table-hover'>
             <thead>
               <tr>
@@ -99,6 +105,14 @@
   <script src="//cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js"></script>
   <script>
     var link = 'http://api.crisis.net/item?location=8.675277%2C9.081999&distance=200&tags=election&apikey=532d32c7ed3329652f114b70&limit=500'
+    var publishedAtDateChart = dc.lineChart('#published-at-date-chart');
+    var publishedAtHourChart = dc.barChart('#published-at-hour-chart');
+    var updatedAtDateChart = dc.lineChart('#updated-at-date-chart');
+    var updatedAtHourChart = dc.barChart('#updated-at-hour-chart');
+    var authorChart = dc.barChart('#author-chart');
+    var hashtagCountChart = dc.pieChart('#hashtag-count-chart');
+    var atCountChart = dc.pieChart('#at-count-chart');
+    var tweetlengthChart = dc.barChart('#tweet-length-chart');
     queue(3)
       .defer(d3.json, link)
       .defer(d3.json, link+'&offset=500')
@@ -122,11 +136,25 @@
          datum.author = datum.author.username;
          datum.hashtag = datum.content.match(/#\w+/g) || [];
          datum.at = datum.content.match(/@\w+/g) || [];
-       })
+         datum.tweetLength = datum.content.length;
+       });
 
        var ndx = crossfilter(data);
        var all = ndx.groupAll();
        var today = new Date();
+
+       var tweetLengthDimension = ndx.dimension(function(d) {
+         if(d.tweetLength < 10){
+           return '< 10';
+         }else if( d.tweetLength <= 50) {
+           return '10 - 50';
+         }else if( d.tweetLength <= 100) {
+           return '51 - 100';
+         }else{
+           return '> 100'
+         }
+       });
+       var tweetLengthGroup = tweetLengthDimension.group().reduceCount();
 
        var publishedAtDateDimension = ndx.dimension(function(d) { return  d.publishedDate; });
        var publishedAtDateGroup = publishedAtDateDimension.group().reduceCount();
@@ -149,18 +177,16 @@
        var atCountDimension = ndx.dimension(function(d) { return d.at.length; });
        var atCountGroup = atCountDimension.group().reduceCount();
 
-       var publishedAtDateChart = dc.lineChart('#published-at-date-chart');
-       var publishedAtHourChart = dc.barChart('#published-at-hour-chart');
+       tweetlengthChart
+        .width(350)
+        .height(300)
+        .margins({top: 20, bottom: 90, right: 20, left: 50})
+        .dimension(tweetLengthDimension)
+        .group(tweetLengthGroup)
+        .x(d3.scale.ordinal())
+        .xUnits(dc.units.ordinal)
 
-       var updatedAtDateChart = dc.lineChart('#updated-at-date-chart');
-       var updatedAtHourChart = dc.barChart('#updated-at-hour-chart');
-
-       var authorChart = dc.barChart('#author-chart');
-
-       var hashtagCountChart = dc.pieChart('#hashtag-count-chart');
-       var atCountChart = dc.pieChart('#at-count-chart');
-
-       publishedAtHourChart
+      publishedAtHourChart
         .width(350)
         .height(200)
         .margins(margin)
@@ -235,9 +261,9 @@
       var filteredAuthorGroup = filterAuthors(authorGroup)
 
       authorChart
-        .width(1100)
+        .width(760)
         .height(300)
-        .margins({top: 20, bottom: 90, right: 20, left: 20})
+        .margins({top: 20, bottom: 90, right: 20, left: 50})
         .dimension(authorDimension)
         .group(filteredAuthorGroup)
         .elasticY(true)
@@ -256,7 +282,7 @@
         .group(function(d) {
           return d.publishedDate.toDateString();
         })
-        .size(10000)
+        .size(500)
         .columns([
           'created',
           'author',
