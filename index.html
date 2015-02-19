@@ -3,6 +3,8 @@
 <title>Election Dashboard</title>
 <head>
   <link href="css/dc.css" rel="stylesheet">
+	<link href="css/leaflet.css" rel="stylesheet"/>
+	<link href="css/leaflet.markercluster.css" rel="stylesheet"/>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
   <link href="css/styles.css" rel="stylesheet">
 </head>
@@ -79,6 +81,13 @@
       </div>
     </div>
 
+     <div class='row'>
+      <div class='col-md-12'>
+        <h2> Tweet Map </h2>
+        <div id='tweet-map-chart' style='height: 500px'></div>
+      </div>
+    </div>
+
     <div class="clearfix"></div>
     <div class='row'>
       <div class='col-md-12'>
@@ -97,11 +106,17 @@
         </div>
       </div>
     </div>
+
   </main>
   <script src="js/d3.js"></script>
   <script src="js/crossfilter.js"></script>
   <script src="js/dc.min.js"></script>
   <script src="js/queue.min.js"></script>
+
+  <script src="js/leaflet.js"></script>
+  <script src="js/leaflet.markercluster.js"></script>
+  <script src="js/dc.leaflet.js"></script>
+
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
   <script src="//cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js"></script>
   <script>
@@ -277,6 +292,14 @@
             .attr('transform', "rotate(-60)");
         });
 
+      var tiles = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', { maxZoom: 25 }), latlng = L.latLng(data[0].geo.coords[0], data[1].geo.coords[0]);
+      var map = L.map('tweet-map-chart', {center: latlng, zoom: 10, layers: [tiles]});
+      var markers = L.markerClusterGroup();
+      data.forEach(function(datum) {
+        marker = L.marker(new L.LatLng(datum.geo.coords[0], datum.geo.coords[1]));
+        markers.addLayer(marker);
+      });
+      map.addLayer(markers);
 
       dc.dataTable('#data-table')
         .dimension(updatedAtDateDimension)
