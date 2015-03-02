@@ -2,14 +2,42 @@
 <meta charset="utf-8">
 <title>Election Dashboard</title>
 <head>
-  <link href="css/dc.css" rel="stylesheet">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+  <link href="css/chosen.css" rel="stylesheet">
   <link href="css/styles.css" rel="stylesheet">
+  <link href="css/dc.css" rel="stylesheet">
 </head>
 <body>
   <a href="https://github.com/quinnlee/nigerian_election"><img style="position: absolute; top: 0; left: 0; border: 0;" src="https://camo.githubusercontent.com/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_left_red_aa0000.png"></a>
   <main class='container'>
     <h1>Crisis Net Nigerian Election Dashboard</h1>
+    <div class='row'>
+      <div class='col-md-4'>
+        <h2> Query Interface</h2>
+        <form id="query-form">
+          <div class='form-group'>
+            <label for="violence-select">Violence Keyword</label>
+            <select class="form-control" id="violence-select" placeholder="Select a keyword">
+              <option value="">None</option>
+            </select>
+          </div>
+          <div class='form-group'>
+            <label for="actor-select">Actor </label>
+            <select class="form-control" id="actor-select" placeholder='Select an Actor'>
+              <option value="">None</option>
+            </select>
+          </div>
+          <div class='form-group'>
+            <label for="location-select">Location</label>
+            <select class="form-control" id="location-select" placeholder='Select a Location'>
+              <option value="">None</option>
+            </select>
+          </div>
+          <input class="btn btn-default" type="submit"/>
+        </form>
+      </div>
+    </div>
+
     <div class='row'>
       <div class='col-md-8'>
         <h2> Published At </h2>
@@ -83,7 +111,7 @@
     <div class='row'>
       <div class='col-md-12'>
         <h2> The Tweets</h2>
-        <span> Sorted by created date and limited to 500</span>
+        <span> Sorted by created date and limited to 100</span>
         <div class='overflow-table'>
           <table id='data-table' class='table table-hover'>
             <thead>
@@ -98,13 +126,88 @@
       </div>
     </div>
   </main>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <script src="js/chosen.jquery.js"></script>
   <script src="js/d3.js"></script>
   <script src="js/crossfilter.js"></script>
   <script src="js/dc.min.js"></script>
   <script src="js/queue.min.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-  <script src="//cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js"></script>
+
   <script>
+    var violenceList = [
+      'attack', 'assault', 'armed', 'amnesty', 'area boys',
+      'aggressive', 'ammunition', 'aggression', 'anger',
+      'angst', 'ak47', 'bandit', 'barbaric', 'blast', 'bomb',
+      'bombed', 'bombing', 'bribe', 'bribery', 'bribing',
+      'brutal', 'brutalise', 'brutalize', 'beat', 'bullet',
+      'bystander', 'calamity', 'capture', 'corporal', 'captain',
+      'coup', "coup d' état", 'conspiracy', 'ceasefire', 'conflict',
+      'creek', 'cult', 'condemn', 'circumvent', 'cultist',
+      'curse', 'criminal', 'civilian', 'death', 'destruction',
+      'damage', 'detonate', 'dynamite', 'DSS', 'escape',
+      'engulf', 'engaged', 'explode', 'exploded', 'enemy',
+      'escalate', 'erupt', 'eruption', 'explosion',
+      'ex-militant', 'ex-warlord', 'fought', 'fled', 'faction',
+      'flee', 'flow station', 'flare', 'forbid', 'fight',
+      'fear', 'frighten', 'gang', 'guard', 'grab', 'gun',
+      'gunmen', 'gunned', 'grapple', 'grenade', 'gunshot', 'hate',
+      'hate speech', 'harm', 'hit', 'hijack', 'hounded',
+      'harass', 'hostile', 'hostility', 'hinder', 'intimidate',
+      'intimidation', 'interrupt', 'invade', 'insult', 'insecurity',
+      'injustice', 'Icelander', 'insurgent', 'insurgency', 'incite',
+      'incriminate', 'incrimination', 'jump', 'justice', 'kata kata',
+      'kill', 'killed', 'kidnap', 'lynch', 'lambast', 'lieutenant',
+      'loot', 'murder', 'mutiny', 'machinegun', 'manslaughter',
+      'manipulate', 'manipulation', 'march', 'manoeuvre', 'mobilise',
+      'militancy', 'masked', 'operation', 'operative', 'officer',
+      'obliterate', 'obliteration', 'obstruction', 'obstruct', 'offence',
+      'offensive', 'overrun', 'overran', 'overpower', 'onslaught',
+      'overwhelm', 'overwhelmed', 'onlooker', 'pistol', 'patrol',
+      'pre-emptive', 'pacify', 'pandemonium', 'protest', 'pipeline',
+      'press', 'resist', 'resistance', 'retreat', 'rancour', 'remove',
+      'removal', 'rebut', 'rebutted', 'rebuttal', 'renounce', 'revenge',
+      'reload', 'raid', 'raise', 'raised', 'rage', 'rigging', 'rig',
+      'retaliation', 'retaliate', 'rabble', 'rubble', 'strike',
+      'siege', 'slam', 'stormed', 'smite', 'struggle', 'slander',
+      'shotgun', 'shoot', 'shot', 'security', 'surrender', 'seize',
+      'stronghold', 'sabotage', 'smash', 'torture', 'tanker',
+      'theft of pvcs', 'torment', 'terrorise', 'terrorize',
+      'terror', 'thug', 'thuggery', 'talisman', 'trepidation',
+      'trapped', 'trap', 'trigger', 'trample', 'topple', 'tangle',
+      'TNT', 'tussle', 'turbulence', 'tension', 'tense', 'undermine',
+      'violence', 'vandalise', 'vandalize', 'vandal', 'violent', 'war', 'warring', 'weapon'
+    ]
+
+    var actorList = [
+      'Assari', 'Dakubo', 'Ekpemupolo', 'Tompolo', 'Ijaw', 'youth council',
+      'Millitant', 'MEND', 'IYC', 'Ijaw youth council', 'JTF', 'joint task force',
+      'Military', 'MolPol', 'mercenary', 'mercenaries', 'police', 'vigilante',
+      'army', 'warlord', 'cultist', 'cult', 'observer', 'terrorist', 'insurgent',
+      'youth', 'youths', 'APC', 'PDP', 'Rotimi Amaechi', 'Felix Obuah', 'Edwin Clark',
+      'Chidi Lloyd', 'Tony Okocha', 'George Sekibo', 'Annkio Briggs', 'O. C. J. Okocha',
+      'Waripamowei Dudafa', 'Inikiyo Ayah', 'Victor Ben', 'Boy Loaf', 'Ogun Boss',
+      'General Pastor', 'Kingsley Kuku', 'Nyesom Wike', 'Mbu', 'Joseph Mbu', 'Ateke Tom', 'Evans Bip'
+    ]
+
+    var dangerZoneList = [
+      'Omoku', 'Okrika', 'Port Harcourt', 'Abua', 'Abua town', 'Odual', 'Abua/Odual',
+      'Ahoda', 'Ekiti', 'Egi Clan', 'Egbema', 'Ndoni', 'ONELGA', 'Mbiama', 'JK4',
+      'Akala-olu', 'Ula-upata', 'Abarikpo', 'Odemerenyi', 'Okoboh', 'Abonema', 'Ogboloma',
+      'Asari-Toru', 'Buguma', 'Ogpakiri', 'Rumuekpe', 'Obio', 'Akpor', 'Obio/Akpor', 'Rumueme',
+      'Rumuodumaya', 'Ozuoba', 'Ogbogoro', 'Rumuigbo', 'Rumuelumini', 'PHALGA', 'Marine Base',
+      'Borokiri', 'Port Harcourt Township', 'Port Harcourt Waterfront', 'Diobu', 'Abuloma',
+      'Amadi-Ama', 'Fimia', 'Okomoku', 'Etche', 'Etche town', 'Okehi', 'Omuma', 'Ogu/Bolo',
+      'Ogu', 'Bolo', 'Ogoni', 'Gokana', 'Tai', 'Eleme', 'Khana', 'Erema', 'Elele',
+      'Isiokpo', 'Oporoma', 'Yenagoa', 'Amassoma', 'Peremabiri', 'Ekeremor', 'Sagbama', 'Kaiama',
+      'Bomadi', 'Oporoza', 'Okerenkoko', 'Olugbobiri', 'Koluama', 'Ezetu', 'Opokuma', 'Odi',
+      'Ughelli', 'Sapele', 'Warri', 'Delta', 'Bayelsa', 'Rivers', 'Bonny', 'Mbiama',
+      'Okrika', 'Degem'
+     ]
+
+    populateSelectOption(violenceList, "#violence-select");
+    populateSelectOption(actorList, "#actor-select");
+    populateSelectOption(dangerZoneList, "#location-select");
+
     var link = 'http://api.crisis.net/item?location=8.675277%2C9.081999&distance=200&tags=election&apikey=532d32c7ed3329652f114b70&limit=500'
     var publishedAtDateChart = dc.lineChart('#published-at-date-chart');
     var publishedAtHourChart = dc.barChart('#published-at-hour-chart');
@@ -114,6 +217,9 @@
     var hashtagCountChart = dc.pieChart('#hashtag-count-chart');
     var atCountChart = dc.pieChart('#at-count-chart');
     var tweetlengthChart = dc.barChart('#tweet-length-chart');
+
+    var data;
+    var ndx;
     queue(3)
       .defer(d3.json, link)
       .defer(d3.json, link+'&offset=500')
@@ -125,22 +231,22 @@
       .defer(d3.json, link+'&offset=3500')
       .defer(d3.json, link+'&offset=4000')
       .awaitAll(function(error, json){
-        var data = json.reduce(function(memo, current) { return memo.concat(current.data)}, []);
         var margin = {top: 10, right: 50, bottom: 45, left: 40};
 
-       data.forEach(function(datum) {
-         datum.publishedAt = new Date(datum.publishedAt);
-         datum.updatedAt = new Date(datum.updatedAt);
-         datum.publishedDate = d3.time.day(datum.publishedAt);
-         datum.updatedDate = d3.time.day(datum.updatedAt);
-         datum.created = new Date(datum.createdAt).toDateString();
-         datum.author = datum.author.username;
-         datum.hashtag = datum.content.match(/#\w+/g) || [];
-         datum.at = datum.content.match(/@\w+/g) || [];
-         datum.tweetLength = datum.content.length;
-       });
+        data = json.reduce(function(memo, current) { return memo.concat(current.data)}, []);
+        data.forEach(function(datum) {
+          datum.publishedAt = new Date(datum.publishedAt);
+          datum.updatedAt = new Date(datum.updatedAt);
+          datum.publishedDate = d3.time.day(datum.publishedAt);
+          datum.updatedDate = d3.time.day(datum.updatedAt);
+          datum.created = new Date(datum.createdAt).toDateString();
+          datum.author = datum.author.username;
+          datum.hashtag = datum.content.match(/#\w+/g) || [];
+          datum.at = datum.content.match(/@\w+/g) || [];
+          datum.tweetLength = datum.content.length;
+        });
 
-       var ndx = crossfilter(data);
+       ndx = crossfilter(data);
        var all = ndx.groupAll();
        var today = new Date();
 
@@ -207,7 +313,8 @@
         .dimension(publishedAtDateDimension)
         .group(publishedAtDateGroup)
         .elasticY(true)
-        .x(d3.time.scale().domain([today.setDate(today.getDate() - 4),  today.setDate(today.getDate() + 4)] ))
+        .elasticX(true)
+        .x(d3.time.scale())
         .xUnits(d3.time.days)
         .renderlet(function(chart){
           chart.selectAll("g.x text")
@@ -235,7 +342,8 @@
         .dimension(updatedAtDateDimension)
         .group(updatedAtDateGroup)
         .elasticY(true)
-        .x(d3.time.scale().domain([today.setDate(today.getDate() - 4),  today.setDate(today.getDate() + 4)] ))
+        .elasticX(true)
+        .x(d3.time.scale())
         .xUnits(d3.time.days)
         .renderlet(function(chart){
           chart.selectAll("g.x text")
@@ -284,7 +392,7 @@
         .group(function(d) {
           return d.publishedDate.toDateString();
         })
-        .size(500)
+        .size(100)
         .columns([
           'created',
           'author',
@@ -294,9 +402,56 @@
         dc.renderAll();
      });
 
+     $('#query-form').on('submit', function(e) {
+       e.preventDefault();
+       var violenceTerm = $('#violence-select').val();
+       var actorTerm = $('#actor-select').val();
+       var locationTerm = $('#location-select').val();
+       var link = 'http://api.crisis.net/item?location=8.675277%2C9.081999&distance=200&tags=election&apikey=532d32c7ed3329652f114b70&limit=500'
+       if(violenceTerm || actorTerm || locationTerm ){
+         var query = '&text=' +violenceTerm + ' ' +actorTerm + ' ' + locationTerm;
+       } else {
+         var query =''
+       }
+
+        queue(3)
+          .defer(d3.json, link+query)
+          .defer(d3.json, link+query+'&offset=500')
+          .defer(d3.json, link+query+'&offset=1000')
+          .awaitAll(function(error, json){
+            data = json.reduce(function(memo, current) { return memo.concat(current.data)}, []);
+            data.forEach(function(datum) {
+              datum.publishedAt = new Date(datum.publishedAt);
+              datum.updatedAt = new Date(datum.updatedAt);
+              datum.publishedDate = d3.time.day(datum.publishedAt);
+              datum.updatedDate = d3.time.day(datum.updatedAt);
+              datum.created = new Date(datum.createdAt).toDateString();
+              datum.author = datum.author.username;
+              datum.hashtag = datum.content.match(/#\w+/g) || [];
+              datum.at = datum.content.match(/@\w+/g) || [];
+              datum.tweetLength = datum.content.length;
+            });
+
+            ndx.remove()
+            ndx.add(data)
+            dc.filterAll();
+            dc.renderAll();
+
+          });
+     });
+
      function filterAuthors(group) {
-       return { all: function() { return group.top(30).filter(function(d) { return d.value > 1;});}}
+       return { all: function() { return group.top(30);}}
      };
+
+    function populateSelectOption(array, selector) {
+      var $select = $(selector);
+      array.forEach(function(element) {
+        $select.append($("<option></option>", { value: element, text: element }));
+      });
+      $select.chosen()
+    }
+
   </script>
 </body>
 
