@@ -409,9 +409,9 @@
        var locationTerm = $('#location-select').val();
        var link = 'http://api.crisis.net/item?location=8.675277%2C9.081999&distance=200&tags=election&apikey=532d32c7ed3329652f114b70&limit=500'
        if(violenceTerm || actorTerm || locationTerm ){
-         var query = '&text=' +violenceTerm + ' ' +actorTerm + ' ' + locationTerm;
+         var query = '&text=' + [violenceTerm, actorTerm, locationTerm].filter(Boolean).join(" ");
        } else {
-         var query =''
+         var query ='';
        }
 
         queue(3)
