@@ -67,17 +67,15 @@
 
     <div class='row'>
       <div class='col-md-8'>
-        <h2> Updated At </h2>
+        <h2> Location </h2>
         <div class='col-md-6'>
-          <div id='updated-at-date-chart'>
-            <span>Tweets by Updated at Date </span>
-          <a class='reset' href='javascript:updatedAtDateChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
+          <div id='location-count-chart'>
+            <span>location count </span>
           </div>
         </div>
         <div class='col-md-6'>
-          <div id='updated-at-hour-chart'>
+          <div id='location-violence-count-chart'>
             <span>Tweets by Updated at by Time of Day</span>
-          <a class='reset' href='javascript:updatedAtHourChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
           </div>
         </div>
       </div>
@@ -204,22 +202,37 @@
       'Okrika', 'Degem'
      ]
 
-    populateSelectOption(violenceList, "#violence-select");
-    populateSelectOption(actorList, "#actor-select");
-    populateSelectOption(dangerZoneList, "#location-select");
+    var dangerZoneSet = d3.set(dangerZoneList.map(function(d){return d.toLowerCase()}));
+    var actorSet = d3.set(actorList);
+    var violenceSet = d3.set(violenceList);
 
-    var link = 'http://api.crisis.net/item?location=8.675277%2C9.081999&distance=200&tags=election&apikey=532d32c7ed3329652f114b70&limit=500'
+    function removeNoneBins(group) {
+      return {
+        all: function() {
+          return group.all().filter(function(d) { return d.key != "None";});
+        }
+      }
+    }
+
+    var link = 'http://api.crisis.net/item?location=8.675277%2C9.081999&distance=200&tags=election&apikey=532d32c7ed3329652f114b70&limit=500';
+
     var publishedAtDateChart = dc.lineChart('#published-at-date-chart');
     var publishedAtHourChart = dc.barChart('#published-at-hour-chart');
-    var updatedAtDateChart = dc.lineChart('#updated-at-date-chart');
-    var updatedAtHourChart = dc.barChart('#updated-at-hour-chart');
     var authorChart = dc.barChart('#author-chart');
     var hashtagCountChart = dc.pieChart('#hashtag-count-chart');
     var atCountChart = dc.pieChart('#at-count-chart');
     var tweetlengthChart = dc.barChart('#tweet-length-chart');
 
+    var locationCountChart = dc.barChart('#location-count-chart');
+    var locationViolenceChart = dc.barChart('#location-violence-count-chart');
+
     var data;
     var ndx;
+
+    populateSelectOption(violenceList, "#violence-select");
+    populateSelectOption(actorList, "#actor-select");
+    populateSelectOption(dangerZoneList, "#location-select");
+
     queue(3)
       .defer(d3.json, link)
       .defer(d3.json, link+'&offset=500')
@@ -230,20 +243,27 @@
       .defer(d3.json, link+'&offset=3000')
       .defer(d3.json, link+'&offset=3500')
       .defer(d3.json, link+'&offset=4000')
+      .defer(d3.json, link+'&offset=4500')
+      .defer(d3.json, link+'&offset=5000')
       .awaitAll(function(error, json){
         var margin = {top: 10, right: 50, bottom: 45, left: 40};
 
         data = json.reduce(function(memo, current) { return memo.concat(current.data)}, []);
         data.forEach(function(datum) {
           datum.publishedAt = new Date(datum.publishedAt);
-          datum.updatedAt = new Date(datum.updatedAt);
           datum.publishedDate = d3.time.day(datum.publishedAt);
-          datum.updatedDate = d3.time.day(datum.updatedAt);
           datum.created = new Date(datum.createdAt).toDateString();
           datum.author = datum.author.username;
           datum.hashtag = datum.content.match(/#\w+/g) || [];
           datum.at = datum.content.match(/@\w+/g) || [];
           datum.tweetLength = datum.content.length;
+          datum.dangerWords = [];
+          datum.location = 'None';
+
+          datum.content.split(" ").forEach(function(word) {
+            if(violenceSet.has(word.toLowerCase())) { datum.dangerWords.push(word); }
+            if(dangerZoneSet.has(word.toLowerCase())) { datum.location = word; }
+          });
         });
 
        ndx = crossfilter(data);
@@ -263,17 +283,15 @@
        });
        var tweetLengthGroup = tweetLengthDimension.group().reduceCount();
 
+       var locationDimension = ndx.dimension(function(d) { return d.location; });
+       var locationGroup = locationDimension.group().reduceCount();
+       var locationViolenceGroup = locationDimension.group().reduceSum(function(d) { return d.dangerWords.length; });
+
        var publishedAtDateDimension = ndx.dimension(function(d) { return  d.publishedDate; });
        var publishedAtDateGroup = publishedAtDateDimension.group().reduceCount();
 
        var publishedAtHourDimension = ndx.dimension(function(d) { return  d.publishedAt.getHours(); });
        var publishedAtHourGroup = publishedAtHourDimension.group().reduceCount();
-
-       var updatedAtDateDimension = ndx.dimension(function(d) { return  d.updatedDate; });
-       var updatedAtDateGroup = updatedAtDateDimension.group().reduceCount();
-
-       var updatedAtHourDimension = ndx.dimension(function(d) { return  d.updatedAt.getHours(); });
-       var updatedAtHourGroup = updatedAtHourDimension.group().reduceCount();
 
        var authorDimension = ndx.dimension(function(d) { return d.author; });
        var authorGroup = authorDimension.group().reduceCount();
@@ -306,41 +324,32 @@
         .alwaysUseRounding(true)
         .x(d3.scale.linear().domain([0, 24]));
 
+      locationCountChart
+        .width(350)
+        .height(200)
+        .margins(margin)
+        .dimension(locationDimension)
+        .group(removeNoneBins(locationGroup))
+        .x(d3.scale.ordinal())
+        .xUnits(dc.units.ordinal)
+        .elasticY(true)
+
+      locationViolenceChart
+        .width(350)
+        .height(200)
+        .margins(margin)
+        .dimension(locationDimension)
+        .group(removeNoneBins(locationViolenceGroup))
+        .x(d3.scale.ordinal())
+        .xUnits(dc.units.ordinal)
+        .elasticY(true)
+
       publishedAtDateChart
         .width(350)
         .height(200)
         .margins(margin)
         .dimension(publishedAtDateDimension)
         .group(publishedAtDateGroup)
-        .elasticY(true)
-        .elasticX(true)
-        .x(d3.time.scale())
-        .xUnits(d3.time.days)
-        .renderlet(function(chart){
-          chart.selectAll("g.x text")
-            .attr('dx', '-27')
-            .attr('dy', '-5')
-            .attr('transform', "rotate(-60)");
-        });
-
-       updatedAtHourChart
-        .width(350)
-        .height(200)
-        .margins(margin)
-        .dimension(updatedAtHourDimension)
-        .group(updatedAtHourGroup)
-        .elasticY(true)
-        .centerBar(true)
-        .round(dc.round.floor)
-        .alwaysUseRounding(true)
-        .x(d3.scale.linear().domain([0, 24]));
-
-      updatedAtDateChart
-        .width(350)
-        .height(200)
-        .margins(margin)
-        .dimension(updatedAtDateDimension)
-        .group(updatedAtDateGroup)
         .elasticY(true)
         .elasticX(true)
         .x(d3.time.scale())
@@ -388,7 +397,7 @@
 
 
       dc.dataTable('#data-table')
-        .dimension(updatedAtDateDimension)
+        .dimension(publishedAtDateDimension)
         .group(function(d) {
           return d.publishedDate.toDateString();
         })
@@ -430,6 +439,14 @@
               datum.hashtag = datum.content.match(/#\w+/g) || [];
               datum.at = datum.content.match(/@\w+/g) || [];
               datum.tweetLength = datum.content.length;
+
+              datum.dangerWords = [];
+              datum.location = 'None';
+
+              datum.content.split(" ").forEach(function(word) {
+                if(violenceSet.has(word.toLowerCase())) { datum.dangerWords.push(word); }
+                if(dangerZoneSet.has(word.toLowerCase())) { datum.location = word; }
+              });
             });
 
             ndx.remove()
@@ -451,7 +468,6 @@
       });
       $select.chosen()
     }
-
   </script>
 </body>
 
