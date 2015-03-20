@@ -4,8 +4,8 @@
 <head>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
   <link href="css/chosen.css" rel="stylesheet">
-  <link href="css/styles.css" rel="stylesheet">
   <link href="css/dc.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
 </head>
 <body>
   <a href="https://github.com/quinnlee/nigerian_election"><img style="position: absolute; top: 0; left: 0; border: 0;" src="https://camo.githubusercontent.com/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_left_red_aa0000.png"></a>
@@ -17,28 +17,25 @@
         <form id="query-form">
           <div class='form-group'>
             <label for="violence-select">Violence Keyword</label>
-            <select class="form-control" id="violence-select" placeholder="Select a keyword">
+            <select class="form-control" id="violence-select" multiple="true"  placeholder="Select a keyword">
               <option value="">None</option>
             </select>
           </div>
           <div class='form-group'>
             <label for="actor-select">Actor </label>
-            <select class="form-control" id="actor-select" placeholder='Select an Actor'>
+            <select class="form-control" id="actor-select" multiple="true" placeholder='Select an Actor'>
               <option value="">None</option>
             </select>
           </div>
           <div class='form-group'>
             <label for="location-select">Location</label>
-            <select class="form-control" id="location-select" placeholder='Select a Location'>
+            <select class="form-control" id="location-select" multiple="true" placeholder='Select a Location'>
               <option value="">None</option>
             </select>
           </div>
           <input class="btn btn-default" type="submit"/>
         </form>
       </div>
-    </div>
-
-    <div class='row'>
       <div class='col-md-8'>
         <h2> Published At </h2>
         <div class='col-md-6'>
@@ -54,58 +51,60 @@
           </div>
         </div>
       </div>
-      <div class='col-md-4'>
-        <h2> Hashtag Count</h2>
-        <div id='hashtag-count-chart'>
-          <span>Tweets by the number of Hashtags used</span>
-          <a class='reset' href='javascript:hashtagCountChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
-        </div>
-      </div>
     </div>
-
     <div class="clearfix"></div>
 
     <div class='row'>
+      <div class='col-md-4'>
+        <h2> Violence Terms</h2>
+        <div id='violence-term-chart'>
+          <span># of tweets with violence terms</span>
+          <a class='reset' href='javascript:violenceTermChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
+        </div>
+      </div>
       <div class='col-md-8'>
         <h2> Location </h2>
         <div class='col-md-6'>
           <div id='location-count-chart'>
-            <span>location count </span>
+            <span>Location Count</span>
+            <a class='reset' href='javascript:locationCountChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
           </div>
         </div>
         <div class='col-md-6'>
           <div id='location-violence-count-chart'>
-            <span>Tweets by Updated at by Time of Day</span>
+            <span>Violence Terms referenced by location</span>
+            <a class='reset' href='javascript:locationViolenceChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
           </div>
         </div>
       </div>
-      <div class='col-md-4'>
-        <h2> @ Count</h2>
-        <div id='at-count-chart'>
-          <span>Tweets by the number of @ references used</span>
-          <a class='reset' href='javascript:atCountChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
-        </div>
-      </div>
-    </div>
-
-    <div class='row'>
       <div class='col-md-8'>
-        <h2> Author </h2>
-        <div id='author-chart'>
-          <span> Top 30 tweeters </span>
-          <a class='reset' href='javascript:authorChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
+        <h2> Violence Word Count</h2>
+        <div class='col-md-6'>
+          <div id='violence-count-chart'>
+            <span>Count of violence words per tweet</span>
+            <a class='reset' href='javascript:atCountChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
+          </div>
         </div>
       </div>
-      <div class='col-md-4'>
-        <h2> Tweet Length</h2>
-        <div id='tweet-length-chart'>
-          <span> Length of Tweets </span>
-          <a class='reset' href='javascript:tweetlengthChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
+      <div class='col-md-8'>
+        <h2> Tweet Info </h2>
+        <div class='col-md-6'>
+          <div id='tweet-length-chart'>
+            <span> Length of Tweets </span>
+            <a class='reset' href='javascript:tweetlengthChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
+          </div>
+        </div>
+        <div class='col-md-6'>
+          <div id='hashtag-count-chart'>
+            <span>Tweets by the number of Hashtags used</span>
+            <a class='reset' href='javascript:hashtagCountChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="clearfix"></div>
+
     <div class='row'>
       <div class='col-md-12'>
         <h2> The Tweets</h2>
@@ -132,6 +131,7 @@
   <script src="js/queue.min.js"></script>
 
   <script>
+    "use strict"
     var violenceList = [
       'attack', 'assault', 'armed', 'amnesty', 'area boys',
       'aggressive', 'ammunition', 'aggression', 'anger',
@@ -188,23 +188,19 @@
     ]
 
     var dangerZoneList = [
-      'Omoku', 'Okrika', 'Port Harcourt', 'Abua', 'Abua town', 'Odual', 'Abua/Odual',
-      'Ahoda', 'Ekiti', 'Egi Clan', 'Egbema', 'Ndoni', 'ONELGA', 'Mbiama', 'JK4',
+      'Omoku', 'Okrika', 'Abua', 'Odual',
+      'Ahoda', 'Ekiti', 'Egbema', 'Ndoni', 'ONELGA', 'Mbiama', 'JK4',
       'Akala-olu', 'Ula-upata', 'Abarikpo', 'Odemerenyi', 'Okoboh', 'Abonema', 'Ogboloma',
-      'Asari-Toru', 'Buguma', 'Ogpakiri', 'Rumuekpe', 'Obio', 'Akpor', 'Obio/Akpor', 'Rumueme',
-      'Rumuodumaya', 'Ozuoba', 'Ogbogoro', 'Rumuigbo', 'Rumuelumini', 'PHALGA', 'Marine Base',
-      'Borokiri', 'Port Harcourt Township', 'Port Harcourt Waterfront', 'Diobu', 'Abuloma',
-      'Amadi-Ama', 'Fimia', 'Okomoku', 'Etche', 'Etche town', 'Okehi', 'Omuma', 'Ogu/Bolo',
+      'Asari-Toru', 'Buguma', 'Ogpakiri', 'Rumuekpe', 'Obio', 'Akpor', 'Rumueme',
+      'Rumuodumaya', 'Ozuoba', 'Ogbogoro', 'Rumuigbo', 'Rumuelumini', 'PHALGA', 'Marine',
+      'Borokiri', 'Harcourt', 'Diobu', 'Abuloma',
+      'Amadi-Ama', 'Fimia', 'Okomoku', 'Etche', 'Okehi', 'Omuma', 'Ogu/Bolo',
       'Ogu', 'Bolo', 'Ogoni', 'Gokana', 'Tai', 'Eleme', 'Khana', 'Erema', 'Elele',
       'Isiokpo', 'Oporoma', 'Yenagoa', 'Amassoma', 'Peremabiri', 'Ekeremor', 'Sagbama', 'Kaiama',
       'Bomadi', 'Oporoza', 'Okerenkoko', 'Olugbobiri', 'Koluama', 'Ezetu', 'Opokuma', 'Odi',
       'Ughelli', 'Sapele', 'Warri', 'Delta', 'Bayelsa', 'Rivers', 'Bonny', 'Mbiama',
       'Okrika', 'Degem'
      ]
-
-    var dangerZoneSet = d3.set(dangerZoneList.map(function(d){return d.toLowerCase()}));
-    var actorSet = d3.set(actorList);
-    var violenceSet = d3.set(violenceList);
 
     function removeNoneBins(group) {
       return {
@@ -214,17 +210,15 @@
       }
     }
 
-    var link = 'http://api.crisis.net/item?location=8.675277%2C9.081999&distance=200&tags=election&apikey=532d32c7ed3329652f114b70&limit=500';
-
     var publishedAtDateChart = dc.lineChart('#published-at-date-chart');
     var publishedAtHourChart = dc.barChart('#published-at-hour-chart');
     var authorChart = dc.barChart('#author-chart');
     var hashtagCountChart = dc.pieChart('#hashtag-count-chart');
-    var atCountChart = dc.pieChart('#at-count-chart');
     var tweetlengthChart = dc.barChart('#tweet-length-chart');
-
     var locationCountChart = dc.barChart('#location-count-chart');
     var locationViolenceChart = dc.barChart('#location-violence-count-chart');
+    var violenceCountChart = dc.barChart('#violence-count-chart');
+    var violenceTermChart = dc.rowChart('#violence-term-chart');
 
     var data;
     var ndx;
@@ -233,21 +227,26 @@
     populateSelectOption(actorList, "#actor-select");
     populateSelectOption(dangerZoneList, "#location-select");
 
-    queue(3)
-      .defer(d3.json, link)
-      .defer(d3.json, link+'&offset=500')
-      .defer(d3.json, link+'&offset=1000')
-      .defer(d3.json, link+'&offset=1500')
-      .defer(d3.json, link+'&offset=2000')
-      .defer(d3.json, link+'&offset=2500')
-      .defer(d3.json, link+'&offset=3000')
-      .defer(d3.json, link+'&offset=3500')
-      .defer(d3.json, link+'&offset=4000')
-      .defer(d3.json, link+'&offset=4500')
-      .defer(d3.json, link+'&offset=5000')
+    var queryString = function() {
+      var query = []
+      for(var i = 0; i < arguments.length; i++) {
+        if(arguments[i].length > 0 ){
+          query.push({ match: { searchText: { query: arguments[i].join(" "), operator: 'or' }}})
+        }
+      }
+      var geoFilter = { geo_distance: { distance: "200km", "geo.coords" : "8.675277, 9.081999" }}
+      var tag = { in: {"tags.name": ["election"]}}
+      var queryObject = {
+        rawQuery: { query: { filtered: { filter: { and: [tag, geoFilter] }, query: { bool:{ must: query }}}}, size: 4000 },
+        apikey: '532d32c7ed3329652f114b70'
+      }
+     return  "http://api.crisis.net/item?"+ $.param(queryObject)
+    }
+
+    queue(1)
+      .defer(d3.json, queryString(dangerZoneList))
       .awaitAll(function(error, json){
         var margin = {top: 10, right: 50, bottom: 45, left: 40};
-
         data = json.reduce(function(memo, current) { return memo.concat(current.data)}, []);
         data.forEach(function(datum) {
           datum.publishedAt = new Date(datum.publishedAt);
@@ -259,12 +258,23 @@
           datum.tweetLength = datum.content.length;
           datum.dangerWords = [];
           datum.location = 'None';
+          dangerZoneList.forEach(function(zone) {
+            var regex = new RegExp(zone, 'i');
+            if (datum.content.search(regex) > 0){
+              datum.location = zone;
+              return false
+            };
+          });
 
-          datum.content.split(" ").forEach(function(word) {
-            if(violenceSet.has(word.toLowerCase())) { datum.dangerWords.push(word); }
-            if(dangerZoneSet.has(word.toLowerCase())) { datum.location = word; }
+          violenceList.forEach(function(word) {
+            var regex = new RegExp(word, 'i');
+            if (datum.content.search(regex) > 0){
+              datum.dangerWords.push(word)
+              return false
+            };
           });
         });
+
 
        ndx = crossfilter(data);
        var all = ndx.groupAll();
@@ -287,6 +297,18 @@
        var locationGroup = locationDimension.group().reduceCount();
        var locationViolenceGroup = locationDimension.group().reduceSum(function(d) { return d.dangerWords.length; });
 
+       var violenceDimension = ndx.dimension(function (d) { return d.dangerWords.length; });
+       var violenceGroup = violenceDimension.group().reduceCount();
+
+       var violenceTermDimension = ndx.dimension(function(d) {
+         if(d.dangerWords.length > 0 ) {
+           return d.dangerWords.join(" ");
+         } else {
+           return 'None';
+         }
+       });
+       var violenceTermGroup = violenceTermDimension.group().reduceCount();
+
        var publishedAtDateDimension = ndx.dimension(function(d) { return  d.publishedDate; });
        var publishedAtDateGroup = publishedAtDateDimension.group().reduceCount();
 
@@ -299,61 +321,108 @@
        var hashTagCountDimension = ndx.dimension(function(d) { return d.hashtag.length; });
        var hashtagCountGroup =  hashTagCountDimension.group().reduceCount();
 
-       var atCountDimension = ndx.dimension(function(d) { return d.at.length; });
-       var atCountGroup = atCountDimension.group().reduceCount();
-
        tweetlengthChart
         .width(350)
-        .height(300)
-        .margins({top: 20, bottom: 90, right: 20, left: 50})
+        .height(250)
+        .margins({top: 20, bottom: 40, right: 20, left: 50})
         .dimension(tweetLengthDimension)
         .group(tweetLengthGroup)
         .x(d3.scale.ordinal())
         .elasticY(true)
         .xUnits(dc.units.ordinal)
+        .xAxisLabel("Tweet Length")
+        .yAxisLabel("# of Tweets")
+
+      violenceCountChart
+        .width(350)
+        .height(200)
+        .margins({top: 20, bottom: 40, right: 20, left: 50})
+        .dimension(violenceDimension)
+        .group(violenceGroup)
+        .x(d3.scale.ordinal())
+        .elasticY(true)
+        .elasticX(true)
+        .xUnits(dc.units.ordinal)
+        .xAxisLabel("# of Violence Keywords")
+        .yAxisLabel("# of Tweets")
 
       publishedAtHourChart
         .width(350)
-        .height(200)
-        .margins(margin)
+        .height(250)
+        .margins({top: 30, right: 20, bottom: 55, left: 40})
         .dimension(publishedAtHourDimension)
         .group(publishedAtHourGroup)
         .elasticY(true)
         .centerBar(true)
         .round(dc.round.floor)
         .alwaysUseRounding(true)
-        .x(d3.scale.linear().domain([0, 24]));
+        .x(d3.scale.linear().domain([0, 24]))
+        .xAxisLabel("Time of Day(Hour)")
+        .yAxisLabel("# of Tweets")
+
+      violenceTermChart
+        .width(350)
+        .height(900)
+        .margins({top: 20, bottom: 90, right: 20, left: 20})
+        .dimension(violenceTermDimension)
+        .group(removeNoneBins(violenceTermGroup))
+        .elasticX(true)
+        .colorAccessor(function(d,i){ return i; })
+        .elasticX(true)
+        .labelOffsetX(10)
+        .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
+        .ordering(function(d) { return d.value; })
+
 
       locationCountChart
         .width(350)
-        .height(200)
-        .margins(margin)
+        .height(250)
+        .margins({top: 10, right: 20, bottom: 55, left: 40})
         .dimension(locationDimension)
         .group(removeNoneBins(locationGroup))
         .x(d3.scale.ordinal())
         .xUnits(dc.units.ordinal)
         .elasticY(true)
+        .elasticX(true)
+        .xAxisLabel("Location")
+        .yAxisLabel("# of Tweets")
+        .renderlet(function(chart){
+          chart.selectAll("g.x text")
+            .attr('dx', '-27')
+            .attr('dy', '-5')
+            .attr('transform', "rotate(-60)");
+        });
 
       locationViolenceChart
         .width(350)
-        .height(200)
-        .margins(margin)
+        .height(250)
+        .margins({top: 30, right: 20, bottom: 55, left: 40})
         .dimension(locationDimension)
         .group(removeNoneBins(locationViolenceGroup))
         .x(d3.scale.ordinal())
         .xUnits(dc.units.ordinal)
         .elasticY(true)
+        .elasticX(true)
+        .xAxisLabel("Location")
+        .yAxisLabel("Sum of Violence Keywords")
+        .renderlet(function(chart){
+          chart.selectAll("g.x text")
+            .attr('dx', '-27')
+            .attr('dy', '-5')
+            .attr('transform', "rotate(-60)");
+        });
 
       publishedAtDateChart
         .width(350)
-        .height(200)
-        .margins(margin)
+        .height(250)
+        .margins({top: 30, right: 20, bottom: 55, left: 40})
         .dimension(publishedAtDateDimension)
         .group(publishedAtDateGroup)
         .elasticY(true)
         .elasticX(true)
         .x(d3.time.scale())
         .xUnits(d3.time.days)
+        .yAxisLabel("# of Tweets")
         .renderlet(function(chart){
           chart.selectAll("g.x text")
             .attr('dx', '-27')
@@ -366,14 +435,6 @@
         .height(200)
         .dimension(hashTagCountDimension)
         .group(hashtagCountGroup)
-        .innerRadius(40)
-        .legend(dc.legend().x(240).y(0).gap(5));
-
-     atCountChart
-        .width(200)
-        .height(200)
-        .dimension(atCountDimension)
-        .group(atCountGroup)
         .innerRadius(40)
         .legend(dc.legend().x(240).y(0).gap(5));
 
@@ -395,7 +456,6 @@
             .attr('transform', "rotate(-60)");
         });
 
-
       dc.dataTable('#data-table')
         .dimension(publishedAtDateDimension)
         .group(function(d) {
@@ -413,21 +473,13 @@
 
      $('#query-form').on('submit', function(e) {
        e.preventDefault();
-       var violenceTerm = $('#violence-select').val();
-       var actorTerm = $('#actor-select').val();
-       var locationTerm = $('#location-select').val();
-       var link = 'http://api.crisis.net/item?location=8.675277%2C9.081999&distance=200&tags=election&apikey=532d32c7ed3329652f114b70&limit=500'
-       if(violenceTerm || actorTerm || locationTerm ){
-         var query = '&text=' + [violenceTerm, actorTerm, locationTerm].filter(Boolean).join(" ");
-       } else {
-         var query ='';
-       }
+       var violenceTerm = $('#violence-select').val() || [];
+       var actorTerm = $('#actor-select').val() || [];
+       var locationTerm = $('#location-select').val() || dangerZoneList;
 
-        queue(3)
-          .defer(d3.json, link+query)
-          .defer(d3.json, link+query+'&offset=500')
-          .defer(d3.json, link+query+'&offset=1000')
-          .awaitAll(function(error, json){
+       queue(1)
+        .defer(d3.json, queryString(violenceTerm, actorTerm, locationTerm))
+        .awaitAll(function(error, json){
             data = json.reduce(function(memo, current) { return memo.concat(current.data)}, []);
             data.forEach(function(datum) {
               datum.publishedAt = new Date(datum.publishedAt);
@@ -442,10 +494,20 @@
 
               datum.dangerWords = [];
               datum.location = 'None';
+              dangerZoneList.forEach(function(zone) {
+                var regex = new RegExp(zone, 'i');
+                if (datum.content.search(regex) > 0){
+                  datum.location = zone;
+                  return false
+                };
+              });
 
-              datum.content.split(" ").forEach(function(word) {
-                if(violenceSet.has(word.toLowerCase())) { datum.dangerWords.push(word); }
-                if(dangerZoneSet.has(word.toLowerCase())) { datum.location = word; }
+              violenceList.forEach(function(word) {
+                var regex = new RegExp(word, 'i');
+                if (datum.content.search(regex) > 0){
+                  datum.dangerWords.push(word)
+                  return false
+                };
               });
             });
 
@@ -453,7 +515,6 @@
             ndx.add(data)
             dc.filterAll();
             dc.renderAll();
-
           });
      });
 
@@ -466,7 +527,7 @@
       array.forEach(function(element) {
         $select.append($("<option></option>", { value: element, text: element }));
       });
-      $select.chosen()
+      $select.chosen({})
     }
   </script>
 </body>
