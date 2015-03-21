@@ -5,6 +5,7 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
   <link href="css/chosen.css" rel="stylesheet">
   <link href="css/dc.css" rel="stylesheet">
+  <link href="css/d3-tips.css" rel="stylesheet">
   <link href="css/styles.css" rel="stylesheet">
 </head>
 <body>
@@ -128,6 +129,7 @@
   <script src="js/d3.js"></script>
   <script src="js/crossfilter.js"></script>
   <script src="js/dc.min.js"></script>
+  <script src="js/d3-tips.js"></script>
   <script src="js/queue.min.js"></script>
 
   <script>
@@ -173,7 +175,7 @@
       'terror', 'thug', 'talisman', 'trepidation',
       'trapped', 'trap', 'trigger', 'trample', 'topple', 'tangle',
       'TNT', 'tussle', 'turbulence', 'tension', 'tense', 'undermine',
-      'violence', 'violent', 'war',  'weapon'
+      'violence', 'violent', 'war', 'weapon'
     ]
 
     var actorList = [
@@ -321,6 +323,8 @@
        var hashTagCountDimension = ndx.dimension(function(d) { return d.hashtag.length; });
        var hashtagCountGroup =  hashTagCountDimension.group().reduceCount();
 
+       var tweetLengthTip = d3.tip().attr('class', 'd3-tip').html(function(d) { return "There are " + d.y + " items " + d.x + " characters long"; }).offset([-15,0]);
+
        tweetlengthChart
         .width(350)
         .height(250)
@@ -332,6 +336,15 @@
         .xUnits(dc.units.ordinal)
         .xAxisLabel("Tweet Length")
         .yAxisLabel("# of Tweets")
+        .renderTitle(false)
+        .renderlet(function(chart){
+          chart.svg().call(tweetLengthTip)
+          chart.selectAll('._0 rect')
+          .on('mouseover', tweetLengthTip.show)
+          .on('mouseout', tweetLengthTip.hide);
+        });
+
+      var violenceCountTip  = d3.tip().attr('class', 'd3-tip').html(function(d) { return "There are " + d.y + " items with " + d.x + " violence keywords"; }).offset([-15,0]);
 
       violenceCountChart
         .width(350)
@@ -345,6 +358,13 @@
         .xUnits(dc.units.ordinal)
         .xAxisLabel("# of Violence Keywords")
         .yAxisLabel("# of Tweets")
+        .renderTitle(false)
+        .renderlet(function(chart){
+          chart.svg().call(violenceCountTip)
+          chart.selectAll('._0 rect')
+          .on('mouseover', violenceCountTip.show)
+          .on('mouseout', violenceCountTip.hide);
+        });
 
       violenceTermChart
         .width(350)
@@ -359,6 +379,8 @@
         .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
         .ordering(function(d) { return d.value; })
 
+      var locationCountTip  = d3.tip().attr('class', 'd3-tip').html(function(d) { return "There are " + d.y + " items that refer to " + '"' +  d.x + '"'  ; }).offset([-15,0]);
+
       locationCountChart
         .width(350)
         .height(250)
@@ -371,12 +393,20 @@
         .elasticX(true)
         .xAxisLabel("Location")
         .yAxisLabel("# of Tweets")
+        .renderTitle(false)
         .renderlet(function(chart){
+          chart.svg().call(locationCountTip)
+          chart.selectAll('._0 rect')
+            .on('mouseover', locationCountTip.show)
+            .on('mouseout', locationCountTip.hide);
+
           chart.selectAll("g.x text")
             .attr('dx', '-30')
             .attr('dy', '6')
             .attr('transform', "rotate(-60)");
         });
+
+      var locationViolenceCountTip  = d3.tip().attr('class', 'd3-tip').html(function(d) { return d.y + " total violence indicators at " + '"' +  d.x + '"'  ; }).offset([-15,0]);
 
       locationViolenceChart
         .width(350)
@@ -390,7 +420,13 @@
         .elasticX(true)
         .xAxisLabel("Location")
         .yAxisLabel("Sum of Violence Keywords")
+        .renderTitle(false)
         .renderlet(function(chart){
+          chart.svg().call(locationViolenceCountTip)
+          chart.selectAll('._0 rect')
+            .on('mouseover', locationViolenceCountTip.show)
+            .on('mouseout', locationViolenceCountTip.hide);
+
           chart.selectAll("g.x text")
             .attr('dx', '-30')
             .attr('dy', '6')
