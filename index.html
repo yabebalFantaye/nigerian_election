@@ -346,20 +346,6 @@
         .xAxisLabel("# of Violence Keywords")
         .yAxisLabel("# of Tweets")
 
-      publishedAtHourChart
-        .width(350)
-        .height(250)
-        .margins({top: 30, right: 20, bottom: 55, left: 40})
-        .dimension(publishedAtHourDimension)
-        .group(publishedAtHourGroup)
-        .elasticY(true)
-        .centerBar(true)
-        .round(dc.round.floor)
-        .alwaysUseRounding(true)
-        .x(d3.scale.linear().domain([0, 24]))
-        .xAxisLabel("Time of Day(Hour)")
-        .yAxisLabel("# of Tweets")
-
       violenceTermChart
         .width(350)
         .height(900)
@@ -372,7 +358,6 @@
         .labelOffsetX(10)
         .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
         .ordering(function(d) { return d.value; })
-
 
       locationCountChart
         .width(350)
@@ -388,8 +373,8 @@
         .yAxisLabel("# of Tweets")
         .renderlet(function(chart){
           chart.selectAll("g.x text")
-            .attr('dx', '-27')
-            .attr('dy', '-5')
+            .attr('dx', '-30')
+            .attr('dy', '6')
             .attr('transform', "rotate(-60)");
         });
 
@@ -407,8 +392,8 @@
         .yAxisLabel("Sum of Violence Keywords")
         .renderlet(function(chart){
           chart.selectAll("g.x text")
-            .attr('dx', '-27')
-            .attr('dy', '-5')
+            .attr('dx', '-30')
+            .attr('dy', '6')
             .attr('transform', "rotate(-60)");
         });
 
@@ -425,10 +410,24 @@
         .yAxisLabel("# of Tweets")
         .renderlet(function(chart){
           chart.selectAll("g.x text")
-            .attr('dx', '-27')
-            .attr('dy', '-5')
+            .attr('dx', '-30')
+            .attr('dy', '6')
             .attr('transform', "rotate(-60)");
         });
+
+      publishedAtHourChart
+        .width(350)
+        .height(250)
+        .margins({top: 30, right: 20, bottom: 40, left: 40})
+        .dimension(publishedAtHourDimension)
+        .group(publishedAtHourGroup)
+        .elasticY(true)
+        .centerBar(true)
+        .round(dc.round.floor)
+        .alwaysUseRounding(true)
+        .x(d3.scale.linear().domain([0, 24]))
+        .xAxisLabel("Time of Day(Hour)")
+        .yAxisLabel("# of Tweets")
 
       hashtagCountChart
         .width(200)
