@@ -259,8 +259,7 @@
           datum.dangerWords = [];
           datum.location = 'None';
           dangerZoneList.forEach(function(zone) {
-            var string = "(^|\\s)("+zone+")(\\s|$)";
-            var regex = new RegExp(string, 'i');
+            var regex = new RegExp(zone, 'i');
             if (datum.content.search(regex) > 0){
               datum.location = zone;
               return false
