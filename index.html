@@ -235,11 +235,12 @@
       }
       var geoFilter = { geo_distance: { distance: "200km", "geo.coords" : "8.675277, 9.081999" }}
       var tag = { in: {"tags.name": ["election"]}}
+      var date = { range: { createdAt: { lte: "now" }}};
       var queryObject = {
-        rawQuery: { query: { filtered: { filter: { and: [tag, geoFilter] }, query: { bool:{ must: query }}}}, size: 4000 },
+        rawQuery: { query: { filtered: { filter: { and: [tag, geoFilter,date] }, query: { bool:{ must: query }}}}, size: 4000 },
         apikey: '532d32c7ed3329652f114b70'
       }
-     return  "http://api.crisis.net/item?"+ $.param(queryObject)
+      return  "http://api.crisis.net/item?"+ $.param(queryObject);
     }
 
     queue(1)
