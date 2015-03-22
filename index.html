@@ -258,7 +258,8 @@
           datum.dangerWords = [];
           datum.location = 'None';
           dangerZoneList.forEach(function(zone) {
-            var regex = new RegExp(zone, 'i');
+            var string = "(^|\\s)("+zone+")(\\s|$)";
+            var regex = new RegExp(string, 'i');
             if (datum.content.search(regex) > 0){
               datum.location = zone;
               return false
@@ -266,7 +267,8 @@
           });
 
           violenceList.forEach(function(word) {
-            var regex = new RegExp(word, 'i');
+            var string = "(^|\\s)("+word+")(\\s|$)";
+            var regex = new RegExp(string, 'i');
             if (datum.content.search(regex) > 0){
               datum.dangerWords.push(word)
               return false
