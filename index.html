@@ -11,10 +11,10 @@
 <body>
   <a href="https://github.com/quinnlee/nigerian_election"><img style="position: absolute; top: 0; left: 0; border: 0;" src="https://camo.githubusercontent.com/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_left_red_aa0000.png"></a>
   <main class='container'>
-    <h1>Crisis Net Nigerian Election Dashboard</h1>
+    <h1>Violence early warning system - beta</h1>
     <div class='row'>
       <div class='col-md-4'>
-        <h2> Query Interface</h2>
+        <h2> Refine your search further </h2>
         <form id="query-form">
           <div class='form-group'>
             <label for="violence-select">Violence Keyword</label>
@@ -32,70 +32,41 @@
             </select>
           </div>
           <input class="btn btn-default" type="submit"/>
+          <button id="reset-form" class="btn btn-danger" />Reset</button>
         </form>
       </div>
       <div class='col-md-8'>
         <h2> Published At </h2>
-        <div class='col-md-6'>
-          <div id='published-at-date-chart'>
-            <span>Tweets by Published at Date </span>
-            <a class='reset' href='javascript:publishedAtDateChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
-          </div>
-        </div>
-        <div class='col-md-6'>
-          <div id='published-at-hour-chart'>
-            <span>Tweets by Published at by Time of Day</span>
-            <a class='reset' href='javascript:publishedAtHourChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
-          </div>
+        <div id='published-at-date-chart'>
+          <span>Reports by Published at Date </span>
+          <a class='reset' href='javascript:publishedAtDateChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
         </div>
       </div>
     </div>
+
     <div class="clearfix"></div>
 
     <div class='row'>
       <div class='col-md-4'>
         <h2> Violence Terms</h2>
         <div id='violence-term-chart'>
-          <span># of tweets with violence terms</span>
+          <span># of reports with violence terms</span>
           <a class='reset' href='javascript:violenceTermChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
         </div>
       </div>
       <div class='col-md-8'>
         <h2> Location </h2>
-        <div class='col-md-6'>
-          <div id='location-count-chart'>
-            <span>Location Count</span>
-            <a class='reset' href='javascript:locationCountChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
-          </div>
-        </div>
-        <div class='col-md-6'>
-          <div id='location-violence-count-chart'>
-            <span>Violence Terms referenced by location</span>
-            <a class='reset' href='javascript:locationViolenceChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
-          </div>
+        <div id='location-violence-count-chart'>
+          <span>Violence Terms referenced by location</span>
+          <a class='reset' href='javascript:locationViolenceChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
         </div>
       </div>
       <div class='col-md-8'>
         <h2> Violence Word Count</h2>
         <div class='col-md-6'>
           <div id='violence-count-chart'>
-            <span>Count of violence words per tweet</span>
+            <span>Count of violence words per report</span>
             <a class='reset' href='javascript:violenceCountChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
-          </div>
-        </div>
-      </div>
-      <div class='col-md-8'>
-        <h2> Tweet Info </h2>
-        <div class='col-md-6'>
-          <div id='tweet-length-chart'>
-            <span> Length of Tweets </span>
-            <a class='reset' href='javascript:tweetlengthChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
-          </div>
-        </div>
-        <div class='col-md-6'>
-          <div id='hashtag-count-chart'>
-            <span>Tweets by the number of Hashtags used</span>
-            <a class='reset' href='javascript:hashtagCountChart.filterAll();dc.redrawAll();' style="display:none">reset</a>
           </div>
         </div>
       </div>
@@ -105,7 +76,7 @@
 
     <div class='row'>
       <div class='col-md-12'>
-        <h2> The Tweets</h2>
+        <h2> The Reports</h2>
         <span> Sorted by created date and limited to 100</span>
         <div class='overflow-table'>
           <table id='data-table' class='table table-hover'>
@@ -210,11 +181,7 @@
     }
 
     var publishedAtDateChart = dc.lineChart('#published-at-date-chart');
-    var publishedAtHourChart = dc.barChart('#published-at-hour-chart');
     var authorChart = dc.barChart('#author-chart');
-    var hashtagCountChart = dc.pieChart('#hashtag-count-chart');
-    var tweetlengthChart = dc.barChart('#tweet-length-chart');
-    var locationCountChart = dc.barChart('#location-count-chart');
     var locationViolenceChart = dc.barChart('#location-violence-count-chart');
     var violenceCountChart = dc.barChart('#violence-count-chart');
     var violenceTermChart = dc.rowChart('#violence-term-chart');
@@ -281,19 +248,6 @@
        var all = ndx.groupAll();
        var today = new Date();
 
-       var tweetLengthDimension = ndx.dimension(function(d) {
-         if(d.tweetLength < 10){
-           return '< 10';
-         }else if( d.tweetLength <= 50) {
-           return '10 - 50';
-         }else if( d.tweetLength <= 100) {
-           return '51 - 100';
-         }else{
-           return '> 100'
-         }
-       });
-       var tweetLengthGroup = tweetLengthDimension.group().reduceCount();
-
        var locationDimension = ndx.dimension(function(d) { return d.location; });
        var locationGroup = locationDimension.group().reduceCount();
        var locationViolenceGroup = locationDimension.group().reduceSum(function(d) { return d.dangerWords.length; });
@@ -313,41 +267,15 @@
        var publishedAtDateDimension = ndx.dimension(function(d) { return  d.publishedDate; });
        var publishedAtDateGroup = publishedAtDateDimension.group().reduceCount();
 
-       var publishedAtHourDimension = ndx.dimension(function(d) { return  d.publishedAt.getHours(); });
-       var publishedAtHourGroup = publishedAtHourDimension.group().reduceCount();
-
        var authorDimension = ndx.dimension(function(d) { return d.author; });
        var authorGroup = authorDimension.group().reduceCount();
 
-       var hashTagCountDimension = ndx.dimension(function(d) { return d.hashtag.length; });
-       var hashtagCountGroup =  hashTagCountDimension.group().reduceCount();
 
-       var tweetLengthTip = d3.tip().attr('class', 'd3-tip').html(function(d) { return "There are " + d.y + " items " + d.x + " characters long"; }).offset([-15,0]);
-
-       tweetlengthChart
-        .width(350)
-        .height(250)
-        .margins({top: 20, bottom: 40, right: 20, left: 50})
-        .dimension(tweetLengthDimension)
-        .group(tweetLengthGroup)
-        .x(d3.scale.ordinal())
-        .elasticY(true)
-        .xUnits(dc.units.ordinal)
-        .xAxisLabel("Tweet Length")
-        .yAxisLabel("# of Tweets")
-        .renderTitle(false)
-        .renderlet(function(chart){
-          chart.svg().call(tweetLengthTip)
-          chart.selectAll('._0 rect')
-          .on('mouseover', tweetLengthTip.show)
-          .on('mouseout', tweetLengthTip.hide);
-        });
-
-      var violenceCountTip  = d3.tip().attr('class', 'd3-tip').html(function(d) { return "There are " + d.y + " items with " + d.x + " violence keywords"; }).offset([-15,0]);
+      var violenceCountTip  = d3.tip().attr('class', 'd3-tip').html(function(d) { return "There are " + d.y + " reports with " + d.x + " violence keywords"; }).offset([-15,0]);
 
       violenceCountChart
         .width(350)
-        .height(200)
+        .height(350)
         .margins({top: 20, bottom: 40, right: 20, left: 50})
         .dimension(violenceDimension)
         .group(violenceGroup)
@@ -356,7 +284,7 @@
         .elasticX(true)
         .xUnits(dc.units.ordinal)
         .xAxisLabel("# of Violence Keywords")
-        .yAxisLabel("# of Tweets")
+        .yAxisLabel("# of Reports")
         .renderTitle(false)
         .renderlet(function(chart){
           chart.svg().call(violenceCountTip)
@@ -366,8 +294,8 @@
         });
 
       violenceTermChart
-        .width(350)
-        .height(900)
+        .width(200)
+        .height(870)
         .margins({top: 20, bottom: 90, right: 20, left: 20})
         .dimension(violenceTermDimension)
         .group(removeNoneBins(violenceTermGroup))
@@ -378,38 +306,11 @@
         .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
         .ordering(function(d) { return d.value; })
 
-      var locationCountTip  = d3.tip().attr('class', 'd3-tip').html(function(d) { return "There are " + d.y + " items that refer to " + '"' +  d.x + '"'  ; }).offset([-15,0]);
-
-      locationCountChart
-        .width(350)
-        .height(250)
-        .margins({top: 10, right: 20, bottom: 55, left: 40})
-        .dimension(locationDimension)
-        .group(removeNoneBins(locationGroup))
-        .x(d3.scale.ordinal())
-        .xUnits(dc.units.ordinal)
-        .elasticY(true)
-        .elasticX(true)
-        .xAxisLabel("Location")
-        .yAxisLabel("# of Tweets")
-        .renderTitle(false)
-        .renderlet(function(chart){
-          chart.svg().call(locationCountTip)
-          chart.selectAll('._0 rect')
-            .on('mouseover', locationCountTip.show)
-            .on('mouseout', locationCountTip.hide);
-
-          chart.selectAll("g.x text")
-            .attr('dx', '-30')
-            .attr('dy', '6')
-            .attr('transform', "rotate(-60)");
-        });
-
       var locationViolenceCountTip  = d3.tip().attr('class', 'd3-tip').html(function(d) { return d.y + " total violence indicators at " + '"' +  d.x + '"'  ; }).offset([-15,0]);
 
       locationViolenceChart
         .width(350)
-        .height(250)
+        .height(350)
         .margins({top: 30, right: 20, bottom: 55, left: 40})
         .dimension(locationDimension)
         .group(removeNoneBins(locationViolenceGroup))
@@ -442,35 +343,13 @@
         .elasticX(true)
         .x(d3.time.scale())
         .xUnits(d3.time.days)
-        .yAxisLabel("# of Tweets")
+        .yAxisLabel("# of Reports")
         .renderlet(function(chart){
           chart.selectAll("g.x text")
             .attr('dx', '-30')
             .attr('dy', '6')
             .attr('transform', "rotate(-60)");
         });
-
-      publishedAtHourChart
-        .width(350)
-        .height(250)
-        .margins({top: 30, right: 20, bottom: 40, left: 40})
-        .dimension(publishedAtHourDimension)
-        .group(publishedAtHourGroup)
-        .elasticY(true)
-        .centerBar(true)
-        .round(dc.round.floor)
-        .alwaysUseRounding(true)
-        .x(d3.scale.linear().domain([0, 24]))
-        .xAxisLabel("Time of Day(Hour)")
-        .yAxisLabel("# of Tweets")
-
-      hashtagCountChart
-        .width(200)
-        .height(200)
-        .dimension(hashTagCountDimension)
-        .group(hashtagCountGroup)
-        .innerRadius(40)
-        .legend(dc.legend().x(240).y(0).gap(5));
 
       var filteredAuthorGroup = filterAuthors(authorGroup)
 
@@ -503,6 +382,53 @@
         ])
 
         dc.renderAll();
+     });
+
+     $('#reset-form').on('click', function(e) {
+       e.preventDefault();
+       $('#violence-select').val("").trigger("chosen:updated");
+       $('#actor-select').val("").trigger("chosen:updated");
+       $('#location-select').val("").trigger("chosen:updated");
+       console.log('a');
+       queue(1)
+        .defer(d3.json, queryString(dangerZoneList))
+        .awaitAll(function(error, json){
+            data = json.reduce(function(memo, current) { return memo.concat(current.data)}, []);
+            data.forEach(function(datum) {
+              datum.publishedAt = new Date(datum.publishedAt);
+              datum.updatedAt = new Date(datum.updatedAt);
+              datum.publishedDate = d3.time.day(datum.publishedAt);
+              datum.updatedDate = d3.time.day(datum.updatedAt);
+              datum.created = new Date(datum.createdAt).toDateString();
+              datum.author = datum.author.username;
+              datum.hashtag = datum.content.match(/#\w+/g) || [];
+              datum.at = datum.content.match(/@\w+/g) || [];
+              datum.tweetLength = datum.content.length;
+
+              datum.dangerWords = [];
+              datum.location = 'None';
+              dangerZoneList.forEach(function(zone) {
+                var regex = new RegExp(zone, 'i');
+                if (datum.content.search(regex) > 0){
+                  datum.location = zone;
+                  return false
+                };
+              });
+
+              violenceList.forEach(function(word) {
+                var regex = new RegExp(word, 'i');
+                if (datum.content.search(regex) > 0){
+                  datum.dangerWords.push(word)
+                  return false
+                };
+              });
+            });
+
+            ndx.remove()
+            ndx.add(data)
+            dc.filterAll();
+            dc.renderAll();
+          });
      });
 
      $('#query-form').on('submit', function(e) {
