@@ -379,6 +379,7 @@
           return d.publishedDate.toDateString();
         })
         .size(100)
+        .order(function(d) { return d.publishedDate })
         .columns([
           'created',
           'author',
