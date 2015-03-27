@@ -204,10 +204,9 @@
       }
       var geoFilter = { geo_distance: { distance: "200km", "geo.coords" : "8.675277, 9.081999" }}
       var tag = { in: {"tags.name": ["election"]}}
-      var date = { range: { createdAt: { lte: "now" }}};
-      var sort = [{publishedAt: { order: "desc" }}];
+      var sort = [{ createdAt: { order: "desc" }}];
       var queryObject = {
-        rawQuery: { sort: sort, query: { filtered: { filter: { and: [tag, geoFilter,date] }, query: { bool:{ must: query }}}}, size: 4000 },
+        rawQuery: { sort: sort, query: { filtered: { filter: { and: [tag] }, query: { bool:{ must: query }}}}, size: 1000 },
         apikey: '532d32c7ed3329652f114b70'
       }
       return  "http://api.crisis.net/item?"+ $.param(queryObject);
@@ -222,10 +221,12 @@
           datum.publishedAt = new Date(datum.publishedAt);
           datum.publishedDate = d3.time.day(datum.publishedAt);
           datum.created = new Date(datum.createdAt).toDateString();
-          datum.author = datum.author.username;
-          datum.hashtag = datum.content.match(/#\w+/g) || [];
-          datum.at = datum.content.match(/@\w+/g) || [];
-          datum.tweetLength = datum.content.length;
+          if (datum.author){
+            datum.author = datum.author.username;
+          } else{
+            datum.author = datum.source;
+          }
+
           datum.dangerWords = [];
           datum.location = 'None';
           dangerZoneList.forEach(function(zone) {
@@ -397,42 +398,42 @@
        queue(1)
         .defer(d3.json, queryString(dangerZoneList))
         .awaitAll(function(error, json){
-            data = json.reduce(function(memo, current) { return memo.concat(current.data)}, []);
-            data.forEach(function(datum) {
-              datum.publishedAt = new Date(datum.publishedAt);
-              datum.updatedAt = new Date(datum.updatedAt);
-              datum.publishedDate = d3.time.day(datum.publishedAt);
-              datum.updatedDate = d3.time.day(datum.updatedAt);
-              datum.created = new Date(datum.createdAt).toDateString();
+          data = json.reduce(function(memo, current) { return memo.concat(current.data)}, []);
+          data.forEach(function(datum) {
+            datum.publishedAt = new Date(datum.publishedAt);
+            datum.publishedDate = d3.time.day(datum.publishedAt);
+            datum.created = new Date(datum.createdAt).toDateString();
+            if (datum.author){
               datum.author = datum.author.username;
-              datum.hashtag = datum.content.match(/#\w+/g) || [];
-              datum.at = datum.content.match(/@\w+/g) || [];
-              datum.tweetLength = datum.content.length;
+            } else{
+              datum.author = datum.source;
+            }
 
-              datum.dangerWords = [];
-              datum.location = 'None';
-              dangerZoneList.forEach(function(zone) {
-                var regex = new RegExp(zone, 'i');
-                if (datum.content.search(regex) > 0){
-                  datum.location = zone;
-                  return false
-                };
-              });
-
-              violenceList.forEach(function(word) {
-                var regex = new RegExp(word, 'i');
-                if (datum.content.search(regex) > 0){
-                  datum.dangerWords.push(word)
-                  return false
-                };
-              });
+            datum.dangerWords = [];
+            datum.location = 'None';
+            dangerZoneList.forEach(function(zone) {
+              var regex = new RegExp(zone, 'i');
+              if (datum.content.search(regex) > 0){
+                datum.location = zone;
+                return false
+              };
             });
 
-            ndx.remove()
-            ndx.add(data)
-            dc.filterAll();
-            dc.renderAll();
+            violenceList.forEach(function(word) {
+              var string = "(^|\\s)("+word+")(\\s|$)";
+              var regex = new RegExp(string, 'i');
+              if (datum.content.search(regex) > 0){
+                datum.dangerWords.push(word)
+                return false
+              };
+            });
           });
+
+          ndx.remove()
+          ndx.add(data)
+          dc.filterAll();
+          dc.renderAll();
+        });
      });
 
      $('#query-form').on('submit', function(e) {
